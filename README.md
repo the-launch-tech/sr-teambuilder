@@ -5,14 +5,14 @@ Simple Laravel application bootstrapped with Valet.
 ___
 
 
-### Usage
+## Usage
 
 - Navigate to root path in browser and view landing page.
 
 ___
 
 
-### Special Features
+## Special Features
 
 - You can add "team_sizes[]" or "min_goalies" as query parameters in the page URL to adjust the constraints on the algorithm.
 
@@ -21,7 +21,7 @@ ___
 ___
 
 
-### Overview
+## Overview
 
 ##### Migration
 
