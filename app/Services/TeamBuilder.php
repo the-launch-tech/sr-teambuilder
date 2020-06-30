@@ -10,6 +10,10 @@ use App\User;
 
 class TeamBuilder {
 
+  public $teams = [];
+  private $faker;
+  private $players;
+
   public function __construct($players) {
     $this->faker = Faker::create();
     $this->teams = [];
@@ -37,7 +41,7 @@ class TeamBuilder {
   * 5. Set valid teams property and return instance
   *
   * Notes: Try to maintain a generally O(n) runtime so that if the data was big performance wouldn't suffer.
-  * It's worth thinking about the last swapping section with this in mind. It's what came to me intuitively, but I'm sure there is a smarter way we could refactor to.
+  * The last swapping section could be refactored a bit, it's context isn't one of huge lists (ie. list of not ready teams, rather than all players or something)
   */
   public function buildTeams($options) {
     $minimumGoalies = $options['minimum_goalies'];
@@ -75,8 +79,8 @@ class TeamBuilder {
       return count($tempTeam['goalie_indices']) >= $minimumGoalies;
     });
 
-    $readyKeys = array_keys($readyRaw);
     $ready = [];
+    $readyKeys = array_keys($readyRaw);
     for ($i = 0; $i < count($readyRaw); $i++) {
       $ready[$i] = $readyRaw[$readyKeys[$i]];
     }
@@ -85,8 +89,8 @@ class TeamBuilder {
       return count($tempTeam['goalie_indices']) < $minimumGoalies;
     });
 
-    $notReadyKeys = array_keys($notReadyRaw);
     $notReady = [];
+    $notReadyKeys = array_keys($notReadyRaw);
     for ($i = 0; $i < count($notReadyRaw); $i++) {
       $notReady[$i] = $notReadyRaw[$notReadyKeys[$i]];
     }
