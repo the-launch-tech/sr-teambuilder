@@ -15,16 +15,12 @@ class User extends Model {
     return $query->where('user_type', 'player');
   }
 
-  public function scopeIsCoach($query) {
-    return $query->where('user_type', 'coach');
-  }
-
   public function scopeCanPlayGoalie($query) {
     return $query->where('can_play_goalie', 1);
   }
 
-  public function scopeCantPlayGoalie($query) {
-    return $query->where('can_play_goalie', 0);
+  public function scopeByRanking($query) {
+    return $query->orderby('ranking', 'DESC');
   }
 
   public static function getPlayers() {

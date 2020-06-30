@@ -10,10 +10,10 @@ use App\User;
 
 class TeamBuilder {
 
-  public function __construct($users) {
+  public function __construct($players) {
     $this->faker = Faker::create();
     $this->teams = [];
-    $this->users = json_decode(json_encode($users), true);
+    $this->players = json_decode(json_encode($players), true);
   }
 
   public function generateMeta() {
@@ -30,90 +30,86 @@ class TeamBuilder {
 
   public function buildTeams($options) {
     $minimumGoalies = $options['minimum_goalies'];
-    $sizes = $options['sizes'];
+    $teamSizeRange = $options['sizes'];
 
-    $teams = [];
-    $totalUsers = User::total();
+    $tempTeams = [];
+    $playersCount = User::total();
 
-    usort($this->users, function ($a, $b) {
+    usort($this->players, function ($a, $b) {
       return $a['ranking'] - $b['ranking'];
     });
 
-    $closest = [null, null];
-    foreach ($sizes as $size) {
-      if (!$closest[0] || $totalUsers % $size < $closest[1]) {
-        $closest = [$size, $totalUsers % $size];
+    $closestTotalPlayers = [null, null];
+    foreach ($teamSizeRange as $sizeInRange) {
+      if (!$closestTotalPlayers[0] || $playersCount % $sizeInRange < $closestTotalPlayers[1]) {
+        $closestTotalPlayers = [$sizeInRange, $playersCount % $sizeInRange];
       }
     }
 
-    $totalTeams = intdiv($totalUsers, $closest[0]);
+    $totalTeams = intdiv($playersCount, $closestTotalPlayers[0]);
 
-    $count = 1;
-    foreach ($this->users as $user) {
-      $teamIndex = $count % $totalTeams;
-      if (!isset($teams[$teamIndex])) {
-        $teams[$teamIndex] = [
+    $n = 1;
+    foreach ($this->players as $player) {
+      $i = $n % $totalTeams;
+      if (!isset($tempTeams[$i])) {
+        $tempTeams[$i] = [
           'users' => [],
           'goalie_indices' => [],
         ];
       }
-      $teams[$teamIndex]['users'][] = $user;
-      if ($user['can_play_goalie']) {
-        $teams[$teamIndex]['goalie_indices'][] = count($teams[$teamIndex]['users']) - 1;
+      $tempTeams[$i]['users'][] = $player;
+      if ($player['can_play_goalie']) {
+        $tempTeams[$i]['goalie_indices'][] = count($tempTeams[$i]['users']) - 1;
       }
-      $count++;
+      $n++;
     }
 
-    $unorderedReadyTeams = array_filter($teams, function ($team) use ($minimumGoalies) {
-      return count($team['goalie_indices']) >= $minimumGoalies;
+    $readyRaw = array_filter($tempTeams, function ($tempTeam) use ($minimumGoalies) {
+      return count($tempTeam['goalie_indices']) >= $minimumGoalies;
     });
 
-    $readyKeys = array_keys($unorderedReadyTeams);
-    $readyTeams = [];
-    for ($i = 0; $i < count($unorderedReadyTeams); $i++) {
-      $readyTeams[$i] = $unorderedReadyTeams[$readyKeys[$i]];
+    $readyKeys = array_keys($readyRaw);
+    $ready = [];
+    for ($i = 0; $i < count($readyRaw); $i++) {
+      $ready[$i] = $readyRaw[$readyKeys[$i]];
     }
 
-    $unorderedNotReadyTeams = array_filter($teams, function ($team) use ($minimumGoalies) {
-      return count($team['goalie_indices']) < $minimumGoalies;
+    $notReadyRaw = array_filter($tempTeams, function ($tempTeam) use ($minimumGoalies) {
+      return count($tempTeam['goalie_indices']) < $minimumGoalies;
     });
 
-    $notReadyKeys = array_keys($unorderedNotReadyTeams);
-    $notReadyTeams = [];
-    for ($i = 0; $i < count($unorderedNotReadyTeams); $i++) {
-      $notReadyTeams[$i] = $unorderedNotReadyTeams[$notReadyKeys[$i]];
+    $notReadyKeys = array_keys($notReadyRaw);
+    $notReady = [];
+    for ($i = 0; $i < count($notReadyRaw); $i++) {
+      $notReady[$i] = $notReadyRaw[$notReadyKeys[$i]];
     }
 
-    if (count($notReadyTeams) < 1) {
-      $this->teams = array_map(function ($readyTeam) {
-        return $readyTeam['users'];
-      }, $readyTeams);
+    if (count($notReady) < 1) {
+      $this->teams = array_map(function ($readyTeam) { return $readyTeam['users']; }, $ready);
       return $this;
     }
 
-    for ($n = 0; $n < count($notReadyTeams); $n++) {
-      $added = false;
-      for ($r = 0; $r < count($readyTeams); $r++) {
-        if (!$added && isset($readyTeams[$r]) && count($readyTeams[$r]['goalie_indices']) > 1) {
-          $goalie = $readyTeams[$r]['users'][$readyTeams[$r]['goalie_indices'][0]];
-          $goalieRanking = $goalie['ranking'];
-          $notReadyTeams[$n]['users'][] = $goalie;
-          $notReadyTeams[$n]['goalie_indices'][] = count($notReadyTeams[$n]['users']) - 1;
-          $replacementWithRank = array_reduce($notReadyTeams[$n]['users'], function ($result, $item) use ($goalieRanking) {
-            return $item['ranking'] === $goalieRanking ? $item : $result;
+    for ($n = 0; $n < count($notReady); $n++) {
+      $swapped = false;
+      for ($r = 0; $r < count($ready); $r++) {
+        if (!$swapped && isset($ready[$r]) && count($ready[$r]['goalie_indices']) > 1) {
+          $swapGoalie = $ready[$r]['users'][$ready[$r]['goalie_indices'][0]];
+          $swapGoalieRanking = $swapGoalie['ranking'];
+          $notReady[$n]['users'][] = $swapGoalie;
+          $notReady[$n]['goalie_indices'][] = count($notReady[$n]['users']) - 1;
+          $swapPlayer = array_reduce($notReady[$n]['users'], function ($result, $item) use ($swapGoalieRanking) {
+            return $item['ranking'] === $swapGoalieRanking ? $item : $result;
           });
-          array_splice($readyTeams[$r]['users'], $readyTeams[$r]['goalie_indices'][0], 1);
-          array_splice($readyTeams[$r]['goalie_indices'], 0, 1);
-          $readyTeams[$r]['users'][] = $replacementWithRank;
-          $readyTeams[] = $notReadyTeams[$n];
-          $added = true;
+          array_splice($ready[$r]['users'], $ready[$r]['goalie_indices'][0], 1);
+          array_splice($ready[$r]['goalie_indices'], 0, 1);
+          $ready[$r]['users'][] = $swapPlayer;
+          $ready[] = $notReady[$n];
+          $swapped = true;
         }
       }
     }
 
-    $this->teams = array_map(function ($readyTeam) {
-      return $readyTeam['users'];
-    }, $readyTeams);
+    $this->teams = array_map(function ($readyTeam) { return $readyTeam['users']; }, $ready);
 
     return $this;
   }
