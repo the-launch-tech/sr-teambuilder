@@ -34,7 +34,7 @@ class TeamBuilder {
 
     $tempTeams = [];
     $playersCount = User::total();
-    
+
     $closestTotalPlayers = [null, null];
     foreach ($teamSizeRange as $sizeInRange) {
       if (!$closestTotalPlayers[0] || $playersCount % $sizeInRange < $closestTotalPlayers[1]) {
@@ -94,7 +94,7 @@ class TeamBuilder {
           $notReady[$n]['users'][] = $swapGoalie;
           $notReady[$n]['goalie_indices'][] = count($notReady[$n]['users']) - 1;
           $swapPlayer = false;
-          while (!$swapPlayer || $swapGoalieRanking > 0) {
+          while (!$swapPlayer && $swapGoalieRanking > 0) {
             $swapPlayer = array_reduce($notReady[$n]['users'], function ($result, $item) use ($swapGoalieRanking, $swapGoalie) {
               return $item['ranking'] === $swapGoalieRanking && $item['id'] !== $swapGoalie['id'] ? $item : $result;
             });
