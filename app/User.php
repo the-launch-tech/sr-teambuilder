@@ -24,7 +24,7 @@ class User extends Model {
   }
 
   public static function getPlayers() {
-    return self::isPlayer()->get();
+    return self::isPlayer()->byRanking()->get();
   }
 
   public static function total() {
