@@ -23,32 +23,43 @@ ___
 
 ## Overview
 
-##### Migration
+#### Migration
 
 - Users table, no auth.
-___
 
-##### Seeder
+
+#### Seeder
 
 - Data from .sql, I decided make a seeder and just slap it in there instead of run the file itself.
-___
 
-##### User Model and Eloquent ORM
+
+#### User Model and Eloquent ORM
 
 - Standard eloquent stuff, used some scopes for semantic building.
-___
 
-##### LandingController 
+
+#### LandingController 
 
 - Handles the view.
-___
 
-##### Testing with provided document
+
+#### Testing with provided document
 
 - Added an additional test to split up the rather large one.
-___
 
-##### View
+
+#### View
 
 - Yields responsive tables representing the teams and players. Highlights goalies, and tracks statistics.
-___
+
+
+#### Faker
+
+- Country + Random Name
+
+
+#### UI
+
+- Bootstrap, totally static - no front end library.
+
+
