@@ -34,7 +34,7 @@ class TeamBuilder {
   * 3. Use modulo and sorted list to help evenly distribute rankings across tempTeams
   * 4. Validate that each team has a goalie
   * 4. If some teams do not, try to swap player of similar rank for duplicate goalie on other team
-  * 5. Return valid teams
+  * 5. Set valid teams property and return instance
   */
   public function buildTeams($options) {
     $minimumGoalies = $options['minimum_goalies'];
