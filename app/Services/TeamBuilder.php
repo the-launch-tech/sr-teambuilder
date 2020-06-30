@@ -35,6 +35,9 @@ class TeamBuilder {
   * 4. Validate that each team has a goalie
   * 4. If some teams do not, try to swap player of similar rank for duplicate goalie on other team
   * 5. Set valid teams property and return instance
+  *
+  * Notes: Try to maintain a generally O(n) runtime so that if the data was big performance wouldn't suffer.
+  * It's worth thinking about the last swapping section with this in mind. It's what came to me intuitively, but I'm sure there is a smarter way we could refactor to.
   */
   public function buildTeams($options) {
     $minimumGoalies = $options['minimum_goalies'];
